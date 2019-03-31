@@ -8,4 +8,8 @@
 
 class JyeooPipeline(object):
     def process_item(self, item, spider):
+        if "level_subjects" == spider.name:
+            print(item)
+        else:
+            return item
         return item

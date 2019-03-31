@@ -13,9 +13,19 @@ class JyeooItem(scrapy.Item):
     # name = scrapy.Field()
     pass
 
-class JyeooLoginItem(scrapy.Item):
-    email = scrapy.Field()
-    password = scrapy.Field()
-    userid = scrapy.Field()
+
+class LevelSubjectsItem(scrapy.Item):
+    id = scrapy.Field()
+    level_name = scrapy.Field()
+    level_code = scrapy.Field()
+    subject_name = scrapy.Field()
+    subject_code = scrapy.Field()
+    search_url = scrapy.Field()
 
 
+class LevelGradeItem(scrapy.Item):
+    id = scrapy.Field()
+    level_name = scrapy.Field()
+    level_code = scrapy.Field()
+    grade_name = scrapy.Field()
+    grade_code = scrapy.Field()

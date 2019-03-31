@@ -2,7 +2,8 @@
 """
 常量
 """
-start_urls = ['http://www.jyeoo.com/math3/ques/search?f=0',
+start_urls = [
+            'http://www.jyeoo.com/math3/ques/search?f=0',
             # 'http://www.jyeoo.com/chinese3/ques/search?f=0',
             # 'http://www.jyeoo.com/english3/ques/search?f=0',
             # 'http://www.jyeoo.com/math0/ques/search?f=1',
