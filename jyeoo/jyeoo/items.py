@@ -29,3 +29,11 @@ class LevelGradeItem(scrapy.Item):
     level_code = scrapy.Field()
     grade_name = scrapy.Field()
     grade_code = scrapy.Field()
+
+
+class LibraryChapterItem(scrapy.Item):
+    id = scrapy.Field()
+    library_id = scrapy.Field()
+    name = scrapy.Field()
+    parent_id = scrapy.Field()
+    pk = scrapy.Field()

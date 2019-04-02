@@ -8,12 +8,35 @@ from jyeoo.common.constant import start_urls
 from jyeoo.common.utils import get_valid_cookie
 from jyeoo.model import DBSession, CookieInfo
 import datetime
+from scrapy_splash import SplashRequest, SplashFormRequest
 
 LOGIN_URL = 'http://api.jyeoo.com'
 
 POST_LOGIN = "http://api.jyeoo.com/math3/home/login?ReturnUrl=%2F%2F%2FScripts%2Fapi.js"
 
 JYEOO_INDEX = "http://www.jyeoo.com/"
+click_script = """
+function main(splash)
+    -- ...
+    local element = splash:select('//a[@class="next"]')
+    local bounds = element:bounds()
+    assert(element:mouse_click{x=bounds.width/2, y=bounds.height/2})
+    -- ...
+end
+"""
+scroll_script = """
+function main(splash)
+    splash:go(splash.args.url)
+    splash:wait(0.5)
+    splash:set_viewport_full()
+    splash:wait(0.5)
+    local element = splash:select('.next')
+    local bounds = element:bounds()
+    assert(element:mouse_click{x=bounds.width/3, y=bounds.height/3})
+    splash:wait(1)
+    return splash:html()
+end
+"""
 
 
 class ItemBank(scrapy.Spider):
@@ -37,7 +60,15 @@ class ItemBank(scrapy.Spider):
             self.log("使用缓存的cookie,进行爬取")
             for item in start_urls:
                 self.log("爬虫开始爬取 url:" + item)
-                yield scrapy.Request(url=item, cookies=cookie, meta={'cookiejar': True}, callback=self.parse)
+                yield SplashRequest(url=item, endpoint="render.html", cookies=cookie,
+                                    meta={'cookiejar': True,
+                                          'dont_redirect': True,
+                                          'splash': {
+                                              'args': {'lua_source': scroll_script, 'images': 0},
+                                              'endpoint': 'execute',
+                                          }
+                                          },
+                                    callback=self.parse)
 
     def login_parse(self, response):
         _login_dict = dict()
@@ -89,7 +120,16 @@ class ItemBank(scrapy.Spider):
     def parse(self, response):
         # 开始爬取
         self.log("开始爬取 url:" + str(response.url))
+        next = response.xpath('//a[@class="next"]').get()
+        print(response.text)
+        print(next)
+        #yield SplashRequest(url=response.url, callback=self.test, meta={'cookiejar': True}, endpoint='/execute',
+        #                    args={'lua_source': click_script})
         # 解析数据
-        sss = JyeooItem()
-        yield sss
+
         # 开始进行分页操作
+
+    def test(self, response):
+
+        print(response.url)
+        print(response.text())

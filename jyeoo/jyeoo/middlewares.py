@@ -33,6 +33,7 @@ class JyeooSpiderMiddleware(object):
 
         # Must return an iterable of Request, dict or Item objects.
         for i in result:
+
             yield i
 
     def process_spider_exception(self, response, exception, spider):
