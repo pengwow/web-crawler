@@ -18,12 +18,14 @@ class LibraryChapter(scrapy.Spider):
         cookie = get_valid_cookie()
         chapter_url = get_chapter_url()
         if cookie:
-            for url in chapter_url:
-                yield SplashRequest(url=url, callback=self.parse, cookies=cookie)
+            for library_id in chapter_url.keys():
+                yield SplashRequest(url=chapter_url.get(library_id), callback=self.parse,
+                                    cookies=cookie,meta={"library_id": library_id})
         else:
             pass  # TODO:待添加cookie处理
 
     def parse(self, response):
+        library_id = response.meta['library_id']
         sub_obj = response.xpath('//ul[@id="JYE_POINT_TREE_HOLDER"]//li')
         for item in sub_obj:
             lc_item = LibraryChapterItem()
@@ -35,13 +37,13 @@ class LibraryChapter(scrapy.Spider):
             lc_item['name'] = item.xpath('./@nm').get()
 
             if temp_list[-1]:
-                lc_item['library_id'] = temp_list[-1]
+                lc_item['library_id'] = library_id
                 parent_id = temp_list[temp_list.index(temp_list[-1]) - 1]
                 lc_item['parent_id'] = ''
                 if parent_id != lc_item['library_id']:
                     lc_item['parent_id'] = parent_id
             else:
-                lc_item['library_id'] = temp_list[-2]
+                lc_item['library_id'] = library_id
                 parent_id = temp_list[temp_list.index(temp_list[-2]) - 1]
                 lc_item['parent_id'] = ''
                 if parent_id != lc_item['library_id']:

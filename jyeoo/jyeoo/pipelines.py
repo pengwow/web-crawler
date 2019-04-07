@@ -23,3 +23,28 @@ class LibraryChapterPipeLine(object):
             session.add(LibraryChapter(**item))
             return item
         return item
+
+
+class ItemBankPipeLine(object):
+    def process_item(self, item, spider):
+        if "item_bank" == spider.name:
+            from jyeoo.mysql_model import DBSession, ItemBank, ChaperPoint, ItemPoint
+            session = DBSession()
+            item_dict = dict(**item)
+            point_list = item_dict.pop('point')
+
+            for point in point_list:
+                chaper_point = dict()
+                chaper_point['chaper_id'] = point.get('chaper_id')
+                chaper_point['title'] = ''  # point.get('url')
+                chaper_point['code'] = point.get('point_code')
+                chaper_point['content'] = point.get('url')
+                session.add(ChaperPoint(**chaper_point))
+                item_point = dict()
+                item_point['item_id'] = point.get('item_id')
+                item_point['point_code'] = point.get('point_code')
+                session.add(ItemPoint(**item_point))
+            print(item_dict)
+            session.add(ItemBank(**item_dict))
+            return item
+        return item

@@ -69,7 +69,8 @@ DEFAULT_REQUEST_HEADERS = {
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
     'jyeoo.pipelines.JyeooPipeline': 300,
-    'jyeoo.pipelines.LibraryChapterPipeLine': 299
+    'jyeoo.pipelines.LibraryChapterPipeLine': 299,
+    'jyeoo.pipelines.ItemBankPipeLine': 298
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
@@ -101,7 +102,7 @@ JYEOO_USERID = '88888888-8888-8888-8888-888888888888'
 
 # See http://scrapy.readthedocs.org/en/latest/topics/spider-middleware.html
 SPIDER_MIDDLEWARES = {
-   'scrapy_splash.SplashDeduplicateArgsMiddleware': 100,
+    'scrapy_splash.SplashDeduplicateArgsMiddleware': 100,
 }
 
 # See http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html
@@ -118,3 +119,4 @@ HTTPCACHE_DIR = 'httpcache'
 SPLASH_URL = "http://192.168.99.100:8050/"  # 自己安装的docker里的splash位置
 DUPEFILTER_CLASS = "scrapy_splash.SplashAwareDupeFilter"
 HTTPCACHE_STORAGE = 'scrapy_splash.SplashAwareFSCacheStorage'
+SPLASH_COOKIES_DEBUG = False

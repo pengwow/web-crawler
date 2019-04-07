@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from sqlalchemy import INT, Column, String, create_engine, Boolean, DateTime    # , ForeignKey
+from sqlalchemy import INT, Column, String, create_engine, Boolean, DateTime  # , ForeignKey
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 import uuid
@@ -58,6 +58,24 @@ class LibraryEntry(Base):
     grade_code = Column(String(10))
 
 
+class ItemStyle(Base):
+    # 表的名字:
+    __tablename__ = 'item_style'
+    # 唯一id
+    id = Column(String(36), primary_key=True)
+    #
+    level_name = Column(String(20))
+    level_code = Column(String(10))
+    # 科目名称
+    subject_name = Column(String(20))
+    # 科目编码
+    subject_code = Column(String(10))
+    # 题型名称
+    style_name = Column(String(20))
+    # 题型编码
+    style_code = Column(String(10))
+
+
 class LibraryChapter(Base):
     # 表的名字:
     __tablename__ = 'library_chapter'
@@ -71,6 +89,65 @@ class LibraryChapter(Base):
     parent_id = Column(String(36))
     # 直接索引
     pk = Column(String(80))
+
+
+class ChaperPoint(Base):
+    # 表的名字:
+    __tablename__ = 'chaper_point'
+    # 主键 UUID
+    id = Column(INT, autoincrement=True, primary_key=True)
+    # 章节ID
+    chaper_id = Column(String(36))
+    # 知识点说明
+    title = Column(String(500))
+    # 知识点编码
+    code = Column(String(10))
+    # 知识点内容
+    content = Column(String(8000))
+
+
+class ItemPoint(Base):
+    # 表的名字:
+    __tablename__ = 'item_point'
+    # 主键 UUID
+    id = Column(INT, autoincrement=True, primary_key=True)
+    # 试题ID
+    item_id = Column(String(36))
+    # 知识点编码
+    point_code = Column(String(10))
+
+
+class ItemBank(Base):
+    # 表的名字:
+    __tablename__ = 'item_bank'
+    # 主键 UUID
+    id = Column(String(36), primary_key=True, default=get_uuid)
+    # 教材ID
+    library_id = Column(String(36))
+    # 章节ID
+    chaper_id = Column(String(36))
+    # 题型
+    item_style_code = Column(String(10))
+    # 难度编码
+    difficult_code = Column(String(10))
+    # 题类编码
+    field_code = Column(String(10))
+    # 来源编码
+    from_code = Column(String(10))
+    # 年份编码
+    year_code = Column(String(10))
+    # 组卷次数
+    used_times = Column(INT)
+    # 真题次数
+    exam_times = Column(INT)
+    # 试题内容
+    context = Column(String(8000))
+    # 试题解析
+    anwser = Column(String(8000))
+    # 年份与地区
+    year_area = Column(String(100))
+    # 收录时间
+    record_time = Column(String(10))
 
 
 class DBSession(object):

@@ -1,8 +1,15 @@
 # -*- coding: utf-8 -*-
-from selenium import webdriver
+import nltk
+import json
+import urllib.request
+from lxml import etree
+url = 'http://www.jyeoo.com/math3/api/pointcard?a=15'
 
-import os
-ll = 'eaa88003-d684-4f23-a435-57e9dd3c669b'
-sss = "eaa88003-d684-4f23-a435-57e9dd3c669b"
-ddd = sss.split('~')
-print(ddd[ddd.index(ll)-1])
+
+point_html = etree.parse(url,etree.HTMLParser())
+
+ul = point_html.xpath('//ul/li')
+for item in ul:
+    ccc = etree.tostring(item.xpath('./text()'))
+    #aaa =
+    print(ccc)
