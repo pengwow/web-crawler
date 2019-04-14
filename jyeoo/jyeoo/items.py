@@ -69,6 +69,7 @@ class ItemBankItem(scrapy.Item):
     # 收录时间
     record_time = scrapy.Field()
 
+    url = scrapy.Field()
     # 知识点 dict()需解析到知识点表
     point = scrapy.Field()
 

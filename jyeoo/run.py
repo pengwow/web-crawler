@@ -7,7 +7,7 @@ import os
 
 # DEBUG
 from scrapy import cmdline
+#cmdline.execute("scrapy crawl library_chapter".split())
 cmdline.execute("scrapy crawl item_bank".split())
 # cmdline.execute("scrapy crawl level_subjects".split())
 # cmdline.execute("scrapy crawl level_grade".split())
-#cmdline.execute("scrapy crawl library_chapter".split())

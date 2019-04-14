@@ -120,3 +120,5 @@ SPLASH_URL = "http://192.168.99.100:8050/"  # 自己安装的docker里的splash�
 DUPEFILTER_CLASS = "scrapy_splash.SplashAwareDupeFilter"
 HTTPCACHE_STORAGE = 'scrapy_splash.SplashAwareFSCacheStorage'
 SPLASH_COOKIES_DEBUG = False
+#MYSQL_ENGINE = 'mysql+pymysql://root:gshare@365@106.12.36.41/test'
+MYSQL_ENGINE = 'mysql+pymysql://root:gshare@365@106.12.36.41/aliyun'

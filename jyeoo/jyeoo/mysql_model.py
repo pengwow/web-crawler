@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from sqlalchemy import INT, Column, String, create_engine, Boolean, DateTime  # , ForeignKey
+from sqlalchemy import INT, Column, String, create_engine, Boolean, DateTime, Text  # , ForeignKey
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 import uuid
@@ -137,25 +137,27 @@ class ItemBank(Base):
     # 年份编码
     year_code = Column(String(10))
     # 组卷次数
-    used_times = Column(INT)
+    used_times = Column(String(10)) #Column(INT)
     # 真题次数
-    exam_times = Column(INT)
+    exam_times = Column(String(10))# Column(INT)
     # 试题内容
-    context = Column(String(8000))
+    context = Column(Text)
     # 试题解析
-    anwser = Column(String(8000))
+    anwser = Column(Text)
     # 年份与地区
     year_area = Column(String(100))
     # 收录时间
     record_time = Column(String(10))
+    url = Column(String(255))
 
 
 class DBSession(object):
 
     def __init__(self):
+        from jyeoo.settings import MYSQL_ENGINE
         # 初始化数据库连接: password 为自己数据库密码
         # '数据库类型+数据库驱动名称://用户名:口令@机器地址:端口号/数据库名'
-        self.engine = create_engine('mysql+pymysql://root:gshare@365@106.12.36.41/test')
+        self.engine = create_engine(MYSQL_ENGINE)
         # 创建DBSession类型:
         db_session = sessionmaker(bind=self.engine)
         self._session = db_session()

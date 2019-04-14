@@ -7,15 +7,17 @@ import scrapy
 from mako.template import Template
 import logging
 from scrapy import FormRequest, Request
-from jyeoo.settings import JYEEO_USER, JYEOO_PASSWORD, SPLASH_URL
+from jyeoo.settings import JYEEO_USER, JYEOO_PASSWORD, SPLASH_URL, JYEOO_USERID
 from scrapy.http.cookies import CookieJar
 from jyeoo.common.utils import get_valid_cookie, get_item_bank_url, cookie_str_to_list, cookie_str_to_dict
-from jyeoo.model import DBSession, CookieInfo
+# from jyeoo.model import DBSession, CookieInfo
 import datetime
 from jyeoo.common.constant import STR
 from scrapy_splash import SplashRequest  # , SplashFormRequest
 import json
-from queue import Queue
+
+from bs4 import BeautifulSoup
+from urllib import request
 
 LOGIN_URL = 'http://api.jyeoo.com'
 
@@ -43,9 +45,9 @@ function main(splash, args)
       body=json.encode({Email="${Email}",Sn="",Password='${Password}',UserID='${UserID}'}),
       headers={["content-type"]="application/json"}
     }
-    splash:wait(0.5)
+    splash:wait(1)
     splash:go("http://www.jyeoo.com")
-    splash:wait(0.5)
+    splash:wait(2)
     return {
     cookies = splash:get_cookies()
     }
@@ -81,12 +83,12 @@ class ItemBank(scrapy.Spider):
     name = "item_bank"
     # 实例化一个cookiejar对象
     cookie_jar = CookieJar()
-    point_queue = Queue()
+
     # 是否登陆
     is_login = False
 
     cookie = None
-    db_session = DBSession()
+    # db_session = DBSession()
     start_urls = dict()
 
     error_page_list = list()  # TODO: 待完成错误页的处理
@@ -96,48 +98,53 @@ class ItemBank(scrapy.Spider):
         self.start_urls = get_item_bank_url()
         if not cookie:
             self.log("未获取到cookie!,开始登陆获取cookie")
-            yield SplashRequest(url=LOGIN_URL, meta={'cookiejar': True}, callback=self.login_parse)
+            self.login_parse()
+            # yield SplashRequest(url=LOGIN_URL, meta={'cookiejar': True}, callback=)
+
         else:
             self.log("使用缓存的cookie,进行爬取")
             script_t = Template(scroll_script)
             new_scroll_script = script_t.render(cookies=cookie_str_to_list(cookie), next=False)
             self.log(new_scroll_script)
             cookie_dict = cookie_str_to_dict(cookie)
-            for item in self.start_urls.keys():
-                url = self.start_urls.get(item)['url']
-                self.log("爬虫开始爬取 url:" + url)
-                yield SplashRequest(url=url,
-                                    endpoint="execute",
-                                    cookies=cookie_dict,
-                                    meta={'cookiejar': True,
-                                          'lua_source': new_scroll_script,
-                                          'jyeoo_args': self.start_urls.get(item),
-                                          'jyeoo_cookie_str': cookie,
-                                          'cookies': cookie_dict
-                                          },
-                                    args={'wait': '0.5',
-                                          "render_all": 1,
-                                          'lua_source': new_scroll_script},
-                                    callback=self.parse)
+            for start_urls in self.start_urls:
 
-    def login_parse(self, response):
+                for item in start_urls.keys():
+                    url = start_urls.get(item)['url']
+                    self.log("爬虫开始爬取 url:" + url)
+                    yield SplashRequest(url=url,
+                                        endpoint="execute",
+                                        cookies=cookie_dict,
+                                        meta={'cookiejar': True,
+                                              'lua_source': new_scroll_script,
+                                              'jyeoo_args': start_urls.get(item),
+                                              'jyeoo_cookie_str': cookie,
+                                              'cookies': cookie_dict
+                                              },
+                                        args={'wait': '0.5',
+                                              "render_all": 1,
+                                              'lua_source': new_scroll_script},
+                                        callback=self.parse)
+
+    def login_parse(self):
         _login_dict = dict()
         _login_dict['Sn'] = ''
-        userid = response.css('#UserID::attr(value)').extract()
+        # userid = response.css('#UserID::attr(value)').extract()
 
         _login_dict['Email'] = JYEEO_USER
 
         _login_dict['Password'] = JYEOO_PASSWORD
-        if len(userid) > 0:
-            _login_dict['UserID'] = userid[0]
+        _login_dict['UserID'] = JYEOO_USERID
+        # if len(userid) > 0:
+        #     _login_dict['UserID'] = userid[0]
 
-        self.log("登陆数据:" + str(_login_dict))
+        # self.log("登陆数据:" + str(_login_dict))
         # 响应Cookie
-        cookie1 = response.headers.getlist('Set-Cookie')
+        # cookie1 = response.headers.getlist('Set-Cookie')
         cookie_t = Template(get_cookie_script)
         _login_dict['login_url'] = LOGIN_POST_URL
         new_cookie_script = cookie_t.render(**_login_dict)
-        self.log("后台首次写入的响应Cookies：:" + str(cookie1))
+        # self.log("后台首次写入的响应Cookies：:" + str(cookie1))
         print(new_cookie_script)
         get_cookie_url = SPLASH_URL + 'execute?lua_source=' + quote(new_cookie_script)
 
@@ -151,9 +158,11 @@ class ItemBank(scrapy.Spider):
             db_dict['create_time'] = datetime.datetime.now()
             for cookie in cookie_dict.get('cookies'):
                 new_cookie_str = new_cookie_str + cookie_str.format(**cookie) + ';'
-
             db_dict['cookie'] = new_cookie_str[:-1]
-            self.db_session.add(CookieInfo(**db_dict))
+            # db_session = DBSession()
+            # db_session.add(CookieInfo(**db_dict))
+            return db_dict['cookie']
+        return None
 
     def check_login(self, response):
         cookie2 = response.request.headers.getlist('Cookie')
@@ -176,7 +185,7 @@ class ItemBank(scrapy.Spider):
         if user_info and self.is_login:
             self.log('登陆成功!登陆账号:' + user_info)
             self.log(db_dict['cookie'])
-            self.db_session.add(CookieInfo(**db_dict))
+            # self.db_session.add(CookieInfo(**db_dict))
             # 重新开始
             self.start_requests()
             # for url in start_urls:
@@ -193,6 +202,12 @@ class ItemBank(scrapy.Spider):
         fieldset = response.xpath('.//fieldset')
         for item in fieldset:
             fieldset_id = item.xpath('./@id').get()
+            if not fieldset_id or fieldset_id == '00000000-0000-0000-0000-000000000000':
+                self.log('获取ID错误: %s' % response.url)
+                print('获取ID错误: %s' % response.url)
+                print(response.text)
+                continue
+            self.log('页面: %s' % response.url)
             detail_page_url = DETAIL_PAGE.format(subject=subject, fieldset=fieldset_id)
             print(detail_page_url)
             # 解析详情页数据
@@ -212,6 +227,8 @@ class ItemBank(scrapy.Spider):
             # 当前页小于总页数,可以翻页
             if next_index < int(all_index):
                 jyeoo_cookie_str = response.meta.get('jyeoo_cookie_str')
+                # print(jyeoo_cookie_str)
+                self.log(jyeoo_cookie_str)
                 # 渲染滚动题库页面翻页
                 script_t = Template(scroll_script)
                 new_scroll_script = script_t.render(cookies=cookie_str_to_list(jyeoo_cookie_str),
@@ -244,6 +261,7 @@ class ItemBank(scrapy.Spider):
                 temp_dict['url'] = response.url
                 temp_dict['jyeoo_args'] = response.meta.get('jyeoo_args')
                 self.error_page_list.append(temp_dict)
+                print("爬取失败:{url}".format(url=response.url))
                 self.log("爬取失败:{url}".format(url=response.url), logging.ERROR)
                 return True
         return False
@@ -267,12 +285,24 @@ class ItemBank(scrapy.Spider):
             pointcard = onclick.split(',')
             pointcard_page = POINTCARD_PAGE.format(subject=pointcard[0],
                                                    point_code=pointcard[1])
-            print(pointcard_page)
+            retry_count = 0
+            while True:
+
+                html = request.urlopen(pointcard_page)
+                download_soup = BeautifulSoup(html, 'lxml')
+                title = download_soup.find('b')
+                if not title and retry_count < 3:
+                    retry_count += 1
+                    continue
+                if title:
+                    title = title.text
+                break
             result.append(dict(url=pointcard_page,
                                item_id=item_id,
                                point_code=pointcard[1],
                                subject=pointcard[0],
-                               chaper_id=chaper_id))
+                               chaper_id=chaper_id,
+                               title=title))
 
         return result
 
@@ -287,33 +317,37 @@ class ItemBank(scrapy.Spider):
     def detail_page_parse(self, response):
         if self.is_error_page(response):
             return
+        item_id = response.meta.get('fieldset_id')
         jyeoo_args = response.meta.get('jyeoo_args')
-        print(jyeoo_args)
         bank_item = ItemBankItem()
+
         bank_item['library_id'] = jyeoo_args.get('library_id')
         bank_item['chaper_id'] = jyeoo_args.get('chaper_id')
         bank_item['field_code'] = jyeoo_args.get('field_code')
         bank_item['from_code'] = jyeoo_args.get('subject')
 
+        bank_item['url'] = DETAIL_PAGE.format(subject=jyeoo_args.get('subject'), fieldset=item_id)
         bank_item['difficult_code'] = ''
         bank_item['year_code'] = ''
         bank_item['used_times'] = ''
         bank_item['exam_times'] = ''
         bank_item['year_area'] = ''
 
-        item_id = response.meta.get('fieldset_id')
+
         fieldset_xpath = '//div[@id="{fieldset_id}"]'.format(fieldset_id=item_id)
         detail_data = response.xpath(fieldset_xpath)
         # 考题
         bank_item['context'] = detail_data.xpath('.//div[@class="pt1"]').get()
         # 选择区/答题区/简答区
         pt2 = detail_data.xpath('.//div[@class="pt2"]').get('')
-        bank_item['context'] = bank_item['context'] + pt2
+        bank_item['context'] = detail_data.get('')  # bank_item['context'] + pt2
         # 考点
         pt3 = detail_data.xpath('.//div[@class="pt3"]').get('')
         # 获取知识点内容
         pointcard_xpath = detail_data.xpath('.//div[@class="pt3"]')
-        bank_item['point'] = self.get_pointcard(response)
+        result = self.get_pointcard(response)
+        if result:
+            bank_item['point'] = result
         # 专题
         pt4 = detail_data.xpath('.//div[@class="pt4"]').get('')
         # 分析
@@ -323,7 +357,7 @@ class ItemBank(scrapy.Spider):
         # 点评
         pt7 = detail_data.xpath('.//div[@class="pt7"]').get('')
         # pt9 = detail_data.xpath('.//div[@class="pt9"]').get()
-        bank_item['anwser'] = pt3 + pt4 + pt5 + pt6 + pt7
+        bank_item['anwser'] = detail_data.get('')  # pt3 + pt4 + pt5 + pt6 + pt7
         fieldtip_left = detail_data.xpath('.//div[@class="fieldtip-left"]')
         record_time = fieldtip_left.xpath('.//span[1]/text()').get()
         used_times = fieldtip_left.xpath('.//span[2]/text()').get()

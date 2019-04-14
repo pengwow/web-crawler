@@ -11,6 +11,28 @@ DETAIL_PAGE = 'http://www.jyeoo.com/{subject}/ques/detail/{fieldset}'
 
 # 知识点页面
 POINTCARD_PAGE = 'http://www.jyeoo.com/{subject}/api/pointcard?a={point_code}'
+LOGIN_URL = 'http://api.jyeoo.com'
+
+POST_LOGIN = "http://api.jyeoo.com/home/login?ReturnUrl=%2F%2F%2FScripts%2Fapi.js"
+LOGIN_POST_URL = 'http://api.jyeoo.com/home/login?ReturnUrl=%2F'
+JYEOO_INDEX = "http://www.jyeoo.com"
+# 获取cookie函数
+get_cookie_script = """
+function main(splash, args)
+  local json = require("json")
+  local response = splash:http_post{url="${login_url}",     
+      body=json.encode({Email="${Email}",Sn="",Password='${Password}',UserID='${UserID}'}),
+      headers={["content-type"]="application/json"}
+    }
+    splash:wait(0.5)
+    splash:go("http://www.jyeoo.com")
+    splash:wait(0.5)
+    return {
+    cookies = splash:get_cookies()
+    }
+end
+"""
+
 
 start_urls = [
     'http://www.jyeoo.com/math3/ques/search?f=0',
