@@ -4,6 +4,7 @@ from sqlalchemy import INT, Column, String, create_engine, Boolean, DateTime, Te
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 import uuid
+import datetime
 
 # 创建对象的基类:
 Base = declarative_base()
@@ -31,7 +32,7 @@ class CookieInfo(Base):
     # 唯一id
     id = Column(String(32), primary_key=True, default=get_uuid)
     # 创建时间
-    create_time = Column(DateTime)
+    create_time = Column(DateTime, default=datetime.datetime.now, comment='创建时间')
     # cookie 
     cookie = Column(Text)
     # 是否有效 False 为失效
@@ -104,6 +105,8 @@ class ChaperPoint(Base):
     code = Column(String(10))
     # 知识点内容
     content = Column(String(8000))
+    # 知识点URL
+    url = Column(String(255))
 
 
 class ItemPoint(Base):
@@ -137,9 +140,9 @@ class ItemBank(Base):
     # 年份编码
     year_code = Column(String(10))
     # 组卷次数
-    used_times = Column(String(10)) #Column(INT)
+    used_times = Column(String(10))  # Column(INT)
     # 真题次数
-    exam_times = Column(String(10))# Column(INT)
+    exam_times = Column(String(10))  # Column(INT)
     # 试题内容
     context = Column(Text)
     # 试题解析
@@ -148,7 +151,10 @@ class ItemBank(Base):
     year_area = Column(String(100))
     # 收录时间
     record_time = Column(String(10))
+    # url地址
     url = Column(String(255))
+    # 爬取时间
+    create_date = Column(DateTime, default=datetime.datetime.now().strftime('%Y-%m-%d'), comment='爬取时间')
 
 
 class DBSession(object):
@@ -173,6 +179,20 @@ class DBSession(object):
         :return:
         """
         self._session.add(param)
+        self._session.commit()
+
+    def update(self, table, field, value=list()):
+        """
+        修改值
+        :param table: 表名
+        :param field: 修改字段名称
+        :param value: 修改的值 {'key':'','value':''}
+        :return:
+        """
+        eval_command = "{table}.{field}".format(table=table, field=field)
+        query = self._session.query(table).filter(eval(eval_command)).first()
+        for item in value:
+            eval('query.{key}={value}'.format(key=item['key'], value=item['value']))
         self._session.commit()
 
     def __del__(self):

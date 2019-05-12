@@ -20,7 +20,7 @@ class LibraryChapter(scrapy.Spider):
         if cookie:
             for library_id in chapter_url.keys():
                 yield SplashRequest(url=chapter_url.get(library_id), callback=self.parse,
-                                    cookies=cookie,meta={"library_id": library_id})
+                                    cookies=cookie, meta={"library_id": library_id})
         else:
             pass  # TODO:待添加cookie处理
 

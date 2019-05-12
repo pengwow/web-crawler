@@ -39,7 +39,7 @@ class ItemBankPipeLine(object):
                 chaper_point['chaper_id'] = point.get('chaper_id')
                 chaper_point['title'] = point.get('title')  # point.get('url')
                 chaper_point['code'] = point.get('point_code')
-                chaper_point['content'] = point.get('url')
+                chaper_point['url'] = point.get('url')
                 self.session.add(ChaperPoint(**chaper_point))
                 item_point = dict()
                 item_point['item_id'] = point.get('item_id')
@@ -49,5 +49,17 @@ class ItemBankPipeLine(object):
                 self.session.add(ItemBank(**item_dict))
             except Exception as e:
                 print(e)
+            return item
+        return item
+
+
+class ChapterPointPipeLine(object):
+    session = DBSession()
+
+    def process_item(self, item, spider):
+        if "chapter_point" == spider.name:
+            query = self.session.session.query(ChaperPoint).filter(ChaperPoint.id == item.get('id')).one()
+            query.content = item.get('content')
+            query.commit()
             return item
         return item

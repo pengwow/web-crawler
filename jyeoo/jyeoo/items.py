@@ -73,3 +73,11 @@ class ItemBankItem(scrapy.Item):
     # 知识点 dict()需解析到知识点表
     point = scrapy.Field()
 
+
+class ChapterPointItem(scrapy.Item):
+    id = scrapy.Field()
+    # chapter_id = scrapy.Field()
+    # title = scrapy.Field()
+    # code = scrapy.Field()
+    content = scrapy.Field()
+    # url = scrapy.Field()

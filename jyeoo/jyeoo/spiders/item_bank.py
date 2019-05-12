@@ -6,10 +6,10 @@ from urllib.parse import quote
 import scrapy
 from mako.template import Template
 import logging
-from scrapy import FormRequest, Request
+# from scrapy import FormRequest, Request
 from jyeoo.settings import JYEEO_USER, JYEOO_PASSWORD, SPLASH_URL, JYEOO_USERID
 from scrapy.http.cookies import CookieJar
-from jyeoo.common.utils import get_valid_cookie, get_item_bank_url, cookie_str_to_list, cookie_str_to_dict
+from jyeoo.common.utils import get_valid_cookie, get_item_bank_url, cookie_str_to_list, txt_wrap_by, cookie_str_to_dict
 # from jyeoo.model import DBSession, CookieInfo
 import datetime
 from jyeoo.common.constant import STR
@@ -208,12 +208,17 @@ class ItemBank(scrapy.Spider):
                 print(response.text)
                 continue
             self.log('页面: %s' % response.url)
+            # 年份地区
+            year_html = item.xpath('./div[@class="pt1"]').get()
+            context = item.get()
             detail_page_url = DETAIL_PAGE.format(subject=subject, fieldset=fieldset_id)
             print(detail_page_url)
             # 解析详情页数据
             yield scrapy.Request(url=detail_page_url, meta={'cookiejar': True,
                                                             'jyeoo_args': jyeoo_args,
-                                                            'fieldset_id': fieldset_id
+                                                            'fieldset_id': fieldset_id,
+                                                            'year_html': year_html,
+                                                            'context': context
                                                             },
                                  cookies=cookies,
                                  callback=self.detail_page_parse)
@@ -325,39 +330,44 @@ class ItemBank(scrapy.Spider):
         bank_item['chaper_id'] = jyeoo_args.get('chaper_id')
         bank_item['field_code'] = jyeoo_args.get('field_code')
         bank_item['from_code'] = jyeoo_args.get('subject')
-
+        bank_item['item_style_code'] = jyeoo_args.get('item_style_code')
         bank_item['url'] = DETAIL_PAGE.format(subject=jyeoo_args.get('subject'), fieldset=item_id)
         bank_item['difficult_code'] = ''
         bank_item['year_code'] = ''
+        year_html = response.meta.get('year_html')
+        year_area = txt_wrap_by('（', '）', year_html)
+        if not year_area:
+            year_area = txt_wrap_by('(', ')', year_html)
+        if year_area:
+            bank_item['year_code'] = year_area.split('•')[0]
         bank_item['used_times'] = ''
         bank_item['exam_times'] = ''
-        bank_item['year_area'] = ''
-
+        bank_item['year_area'] = year_area
 
         fieldset_xpath = '//div[@id="{fieldset_id}"]'.format(fieldset_id=item_id)
         detail_data = response.xpath(fieldset_xpath)
         # 考题
         bank_item['context'] = detail_data.xpath('.//div[@class="pt1"]').get()
         # 选择区/答题区/简答区
-        pt2 = detail_data.xpath('.//div[@class="pt2"]').get('')
-        bank_item['context'] = detail_data.get('')  # bank_item['context'] + pt2
+        # pt2 = detail_data.xpath('.//div[@class="pt2"]').get('')
+        bank_item['context'] = response.meta.get('context')  # bank_item['context'] + pt2  # detail_data.get('')
         # 考点
-        pt3 = detail_data.xpath('.//div[@class="pt3"]').get('')
+        # pt3 = detail_data.xpath('.//div[@class="pt3"]').get('')
         # 获取知识点内容
-        pointcard_xpath = detail_data.xpath('.//div[@class="pt3"]')
+        # pointcard_xpath = detail_data.xpath('.//div[@class="pt3"]')
         result = self.get_pointcard(response)
         if result:
             bank_item['point'] = result
-        # 专题
-        pt4 = detail_data.xpath('.//div[@class="pt4"]').get('')
-        # 分析
-        pt5 = detail_data.xpath('.//div[@class="pt5"]').get('')
-        # 解答
-        pt6 = detail_data.xpath('.//div[@class="pt6"]').get('')
-        # 点评
-        pt7 = detail_data.xpath('.//div[@class="pt7"]').get('')
+        # # 专题
+        # pt4 = detail_data.xpath('.//div[@class="pt4"]').get('')
+        # # 分析
+        # pt5 = detail_data.xpath('.//div[@class="pt5"]').get('')
+        # # 解答
+        # pt6 = detail_data.xpath('.//div[@class="pt6"]').get('')
+        # # 点评
+        # pt7 = detail_data.xpath('.//div[@class="pt7"]').get('')
         # pt9 = detail_data.xpath('.//div[@class="pt9"]').get()
-        bank_item['anwser'] = detail_data.get('')  # pt3 + pt4 + pt5 + pt6 + pt7
+        bank_item['anwser'] = detail_data.get('')  # pt3 + pt4 + pt5 + pt6 + pt7  #
         fieldtip_left = detail_data.xpath('.//div[@class="fieldtip-left"]')
         record_time = fieldtip_left.xpath('.//span[1]/text()').get()
         used_times = fieldtip_left.xpath('.//span[2]/text()').get()

@@ -119,11 +119,38 @@ def get_chapter_url():
     return re_dict
 
 
+def get_chapter_point_url():
+    """
+    获取知识点url列表
+    :return:
+    """
+    from jyeoo.mysql_model import DBSession, ChaperPoint
+    session = DBSession()
+    chaper_point_query = session.session.query(ChaperPoint).filter_by(ChaperPoint.content.is_(None))
+    re_list = list()
+    for item in chaper_point_query:
+        temp_dict = dict()
+        temp_dict['url'] = item.url
+        temp_dict['id'] = item.id
+        re_list.append(temp_dict)
+    return re_list
+
+
 def get_item_bank_url():
-    from jyeoo.mysql_model import DBSession, LibraryChapter, LibraryEntry, ItemStyle
+    """
+    获取题库url列表用来爬取数据
+    :return:
+    """
+    from jyeoo.mysql_model import DBSession, LibraryChapter, LibraryEntry, ItemStyle, ItemBank
+    from jyeoo.settings import ITEM_BANK_MAX_COUNT
     # re_list = list()
+
     re_dict = dict()
     session = DBSession()
+    today_count = session.session.query(ItemBank).filter(ItemBank.create_date == datetime.datetime.now().strftime('%Y-%m-%d')).count()
+    if today_count >= ITEM_BANK_MAX_COUNT:
+        # 超过每日最大数量限制
+        return list()
     query = session.session.query(LibraryChapter).all()
     url_str = 'http://www.jyeoo.com/{subject}/ques/search?f=0&q={pk}&ct={item_style_code}&fg={field_code}'
     fgs = ['8', '4', '2', '16']
@@ -157,6 +184,19 @@ def get_item_bank_url():
                     # 题类
                     temp_dict['field_code'] = fg
                     temp_dict['url'] = url_str.format(**temp_dict)
+                    # 已经爬取过了则跳过
+                    item_bank_count = session.session.query(ItemBank).filter(ItemBank.url == temp_dict['url']).count()
+                    if item_bank_count > 0:
+                        continue
                     re_dict[item.id] = temp_dict
                     yield re_dict
-    # return re_dict
+
+
+# 取字符串中两个符号之间的东东
+def txt_wrap_by(start_str, end, html):
+    start = html.find(start_str)
+    if start >= 0:
+        start += len(start_str)
+        end = html.find(end, start)
+        if end >= 0:
+            return html[start:end].strip()
