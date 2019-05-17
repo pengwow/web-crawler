@@ -5,19 +5,22 @@ import requests
 from jyeoo.common.constant import *
 import json
 from urllib.parse import quote
+import sys
 
 
 def cookie_str_to_list(cookie):
     """从浏览器或者request headers中拿到cookie字符串，提取为字典格式的cookies"""
-
-    # if fixed_key:
-    "[{'key': 'aaaa', 'value': 'dddd'}, {'key': 'sss', 'value': 'eeeee'}]"
-    # key_dict = cookie_str_to_dict(cookie)
-    # cookies = list()
-    key_dict = [l.split("=", 1) for l in cookie.replace(" ", "").split(";")]
-    # print(key_dict)
-    cookies = [dict(key=item[0], value=item[1]) for item in key_dict]
-
+    cookies = list()
+    try:
+        # if fixed_key:
+        "[{'key': 'aaaa', 'value': 'dddd'}, {'key': 'sss', 'value': 'eeeee'}]"
+        # key_dict = cookie_str_to_dict(cookie)
+        # cookies = list()
+        key_dict = [l.split("=", 1) for l in cookie.replace(" ", "").split(";")]
+        # print(key_dict)
+        cookies = [dict(key=item[0], value=item[1]) for item in key_dict]
+    except Exception as cookie:
+        print(cookie)
     # for key, value in key_dict:
     #     new_dict = dict(key=key, value=value)
     #     cookies.append(new_dict)
@@ -126,7 +129,7 @@ def get_chapter_point_url():
     """
     from jyeoo.mysql_model import DBSession, ChaperPoint
     session = DBSession()
-    chaper_point_query = session.session.query(ChaperPoint).filter_by(ChaperPoint.content.is_(None))
+    chaper_point_query = session.session.query(ChaperPoint).filter(ChaperPoint.content.is_(None))
     re_list = list()
     for item in chaper_point_query:
         temp_dict = dict()
@@ -147,15 +150,17 @@ def get_item_bank_url():
 
     re_dict = dict()
     session = DBSession()
-    today_count = session.session.query(ItemBank).filter(ItemBank.create_date == datetime.datetime.now().strftime('%Y-%m-%d')).count()
-    if today_count >= ITEM_BANK_MAX_COUNT:
-        # 超过每日最大数量限制
-        return list()
+
     query = session.session.query(LibraryChapter).all()
     url_str = 'http://www.jyeoo.com/{subject}/ques/search?f=0&q={pk}&ct={item_style_code}&fg={field_code}'
     fgs = ['8', '4', '2', '16']
     # 遍历章节
     for item in query:
+        today_count = session.session.query(ItemBank).filter(
+            ItemBank.create_date == datetime.datetime.now().strftime('%Y-%m-%d')).count()
+        if today_count >= ITEM_BANK_MAX_COUNT:
+            # 超过每日最大数量限制
+            sys.exit(0)
         entry_query = session.session.query(LibraryEntry).filter(LibraryEntry.id == item.library_id)
         # 遍历 题库索引
         for entry_item in entry_query:
@@ -187,6 +192,7 @@ def get_item_bank_url():
                     # 已经爬取过了则跳过
                     item_bank_count = session.session.query(ItemBank).filter(ItemBank.url == temp_dict['url']).count()
                     if item_bank_count > 0:
+                        print('已经爬取了%s' % temp_dict['url'])
                         continue
                     re_dict[item.id] = temp_dict
                     yield re_dict

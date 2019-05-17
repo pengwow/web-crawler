@@ -35,14 +35,13 @@ class ChapterPoint(scrapy.Spider):
             self.log("使用缓存的cookie,进行爬取知识点表")
             cookie_dict = cookie_str_to_dict(cookie)
             for start_urls in self.start_urls:
-                for item in start_urls.keys():
-                    url = start_urls[item]['url']
-                    self.log("爬虫开始爬取 url:" + url)
-                    yield scrapy.Request(url=url, meta={'cookiejar': True,
-                                                        'id': item
-                                                        },
-                                         cookies=cookie_dict,
-                                         callback=self.parse)
+                url = start_urls['url']
+                self.log("爬虫开始爬取 url:" + url)
+                yield scrapy.Request(url=url, meta={'cookiejar': True,
+                                                    'id': start_urls['id']
+                                                    },
+                                     cookies=cookie_dict,
+                                     callback=self.parse)
 
     def parse(self, response):
         # 开始爬取
