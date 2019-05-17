@@ -60,6 +60,6 @@ class ChapterPointPipeLine(object):
         if "chapter_point" == spider.name:
             query = self.session.session.query(ChaperPoint).filter(ChaperPoint.id == item.get('id')).one()
             query.content = item.get('content')
-            query.commit()
+            self.session.session.commit()
             return item
         return item

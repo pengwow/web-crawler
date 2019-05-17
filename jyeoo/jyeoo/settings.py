@@ -122,9 +122,11 @@ DUPEFILTER_CLASS = "scrapy_splash.SplashAwareDupeFilter"
 HTTPCACHE_STORAGE = 'scrapy_splash.SplashAwareFSCacheStorage'
 SPLASH_COOKIES_DEBUG = False
 # MYSQL_ENGINE = 'mysql+pymysql://root:gshare@365@106.12.36.41/test'
-MYSQL_ENGINE = 'mysql+pymysql://root:root@106.12.12.251/item_library'
+MYSQL_ENGINE = 'mysql+pymysql://root:root@134.175.142.87/test'
 
 # 题库表每天的最大数据量
 ITEM_BANK_MAX_COUNT = 3000
 # 知识点表每天最大数据量
 CHAPTER_POINT_MAX_COUNT = 3000
+
+LOG_LEVEL = "ERROR"

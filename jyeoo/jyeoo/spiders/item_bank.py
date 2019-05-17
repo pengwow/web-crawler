@@ -6,6 +6,7 @@ from urllib.parse import quote
 import scrapy
 from mako.template import Template
 import logging
+import random
 # from scrapy import FormRequest, Request
 from jyeoo.settings import JYEEO_USER, JYEOO_PASSWORD, SPLASH_URL, JYEOO_USERID
 from scrapy.http.cookies import CookieJar
@@ -204,8 +205,7 @@ class ItemBank(scrapy.Spider):
             fieldset_id = item.xpath('./@id').get()
             if not fieldset_id or fieldset_id == '00000000-0000-0000-0000-000000000000':
                 self.log('获取ID错误: %s' % response.url)
-                print('获取ID错误: %s' % response.url)
-                print(response.text)
+                self.log("%s" % response.text)
                 continue
             self.log('页面: %s' % response.url)
             # 年份地区
@@ -292,8 +292,7 @@ class ItemBank(scrapy.Spider):
                                                    point_code=pointcard[1])
             retry_count = 0
             while True:
-
-                html = request.urlopen(pointcard_page)
+                html = request.urlopen(pointcard_page+'&r='+str(random.random()))
                 download_soup = BeautifulSoup(html, 'lxml')
                 title = download_soup.find('b')
                 if not title and retry_count < 3:
