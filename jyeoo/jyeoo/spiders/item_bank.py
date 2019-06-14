@@ -203,6 +203,10 @@ class ItemBank(scrapy.Spider):
             fieldset_id = item.xpath('./@id').get()
             if not fieldset_id or fieldset_id == '00000000-0000-0000-0000-000000000000':
                 self.log('获取ID错误: %s' % response.url)
+<<<<<<< HEAD
+=======
+                self.log("%s" % response.text)
+>>>>>>> 3acaebebdc3ceb805da1c9fcd27b160f7612e1e5
                 continue
             self.log('页面: %s' % response.url)
             # 年份地区

@@ -132,6 +132,7 @@ ITEM_BANK_MAX_COUNT = 3000
 # 知识点表每天最大数据量
 CHAPTER_POINT_MAX_COUNT = 3000
 
+<<<<<<< HEAD
 LOG_LEVEL = "ERROR"
 
 
@@ -139,3 +140,6 @@ LOG_LEVEL = "ERROR"
 
 LOG_LEVEL = "ERROR"
 
+=======
+LOG_LEVEL = "ERROR"
+>>>>>>> 3acaebebdc3ceb805da1c9fcd27b160f7612e1e5
