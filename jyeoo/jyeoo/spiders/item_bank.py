@@ -108,24 +108,22 @@ class ItemBank(scrapy.Spider):
             new_scroll_script = script_t.render(cookies=cookie_str_to_list(cookie), next=False)
             self.log(new_scroll_script)
             cookie_dict = cookie_str_to_dict(cookie)
-            for start_urls in self.start_urls:
-
-                for item in start_urls.keys():
-                    url = start_urls.get(item)['url']
-                    self.log("爬虫开始爬取 url:" + url)
-                    yield SplashRequest(url=url,
-                                        endpoint="execute",
-                                        cookies=cookie_dict,
-                                        meta={'cookiejar': True,
-                                              'lua_source': new_scroll_script,
-                                              'jyeoo_args': start_urls.get(item),
-                                              'jyeoo_cookie_str': cookie,
-                                              'cookies': cookie_dict
-                                              },
-                                        args={'wait': '0.5',
-                                              "render_all": 1,
-                                              'lua_source': new_scroll_script},
-                                        callback=self.parse)
+            for start_url in self.start_urls:
+                url = start_url
+                self.log("爬虫开始爬取 url:" + url)
+                yield SplashRequest(url=url,
+                                    endpoint="execute",
+                                    cookies=cookie_dict,
+                                    meta={'cookiejar': True,
+                                          'lua_source': new_scroll_script,
+                                          'jyeoo_args': url,
+                                          'jyeoo_cookie_str': cookie,
+                                          'cookies': cookie_dict
+                                          },
+                                    args={'wait': '0.5',
+                                          "render_all": 1,
+                                          'lua_source': new_scroll_script},
+                                    callback=self.parse)
 
     def login_parse(self):
         _login_dict = dict()
@@ -205,7 +203,6 @@ class ItemBank(scrapy.Spider):
             fieldset_id = item.xpath('./@id').get()
             if not fieldset_id or fieldset_id == '00000000-0000-0000-0000-000000000000':
                 self.log('获取ID错误: %s' % response.url)
-                self.log("%s" % response.text)
                 continue
             self.log('页面: %s' % response.url)
             # 年份地区
@@ -213,15 +210,16 @@ class ItemBank(scrapy.Spider):
             context = item.get()
             detail_page_url = DETAIL_PAGE.format(subject=subject, fieldset=fieldset_id)
             print(detail_page_url)
+            self.log()
             # 解析详情页数据
-            yield scrapy.Request(url=detail_page_url, meta={'cookiejar': True,
-                                                            'jyeoo_args': jyeoo_args,
-                                                            'fieldset_id': fieldset_id,
-                                                            'year_html': year_html,
-                                                            'context': context
-                                                            },
-                                 cookies=cookies,
-                                 callback=self.detail_page_parse)
+            # yield scrapy.Request(url=detail_page_url, meta={'cookiejar': True,
+            #                                                 'jyeoo_args': jyeoo_args,
+            #                                                 'fieldset_id': fieldset_id,
+            #                                                 'year_html': year_html,
+            #                                                 'context': context
+            #                                                 },
+            #                      cookies=cookies,
+            #                      callback=self.detail_page_parse)
 
         # 获取当前页
         index_cur = response.xpath('//a[@class="index cur"]/text()').get()
