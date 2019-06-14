@@ -71,7 +71,8 @@ ITEM_PIPELINES = {
     'jyeoo.pipelines.JyeooPipeline': 300,
     'jyeoo.pipelines.LibraryChapterPipeLine': 299,
     'jyeoo.pipelines.ItemBankPipeLine': 298,
-    'jyeoo.pipelines.ChapterPointPipeLine': 297
+    'jyeoo.pipelines.ChapterPointPipeLine': 297,
+    'jyeoo.pipelines.ItemBankInitPipeLine': 296
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
@@ -117,16 +118,22 @@ HTTPCACHE_ENABLED = True
 HTTPCACHE_EXPIRATION_SECS = 0
 HTTPCACHE_DIR = 'httpcache'
 
-SPLASH_URL = "http://192.168.99.100:8050/"  # 自己安装的docker里的splash位置
+SPLASH_URL = "http://192.168.3.10:8050/"  # 自己安装的docker里的splash位置
 DUPEFILTER_CLASS = "scrapy_splash.SplashAwareDupeFilter"
 HTTPCACHE_STORAGE = 'scrapy_splash.SplashAwareFSCacheStorage'
 SPLASH_COOKIES_DEBUG = False
 # MYSQL_ENGINE = 'mysql+pymysql://root:gshare@365@106.12.36.41/test'
 MYSQL_ENGINE = 'mysql+pymysql://root:root@134.175.142.87/test'
 
+# 题库初始化表最大限制
+ITEM_BANK_INIT_MAX_COUNT = 300
 # 题库表每天的最大数据量
 ITEM_BANK_MAX_COUNT = 3000
 # 知识点表每天最大数据量
 CHAPTER_POINT_MAX_COUNT = 3000
 
+
+
+
 LOG_LEVEL = "ERROR"
+

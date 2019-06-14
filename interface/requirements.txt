@@ -5,7 +5,7 @@
 requests==2.21.0
 Scrapy==1.6.0
 splash==3.3.1
-#selenium==3.141.0
+selenium==3.141.0
 scrapy-splash==0.7.2
 sqlalchemy
 nltk==3.4
@@ -16,3 +16,5 @@ pymysql
 HTMLParser==0.0.2
 docx==0.2.4
 python-docx==0.8.10
+pyqt5
+sip

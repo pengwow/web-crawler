@@ -74,6 +74,21 @@ class ItemBankItem(scrapy.Item):
     point = scrapy.Field()
 
 
+class ItemBankInitItem(scrapy.Item):
+    # 主键 UUID
+    id = scrapy.Field()
+    # 教材ID
+    library_id = scrapy.Field()
+    # 章节ID
+    chaper_id = scrapy.Field()
+    # 学科
+    from_code = scrapy.Field()
+    fieldset_id = scrapy.Field()
+    detail_page_url = scrapy.Field()
+    ques_url = scrapy.Field()
+    # 题型
+    item_style_code = scrapy.Field()
+
 class ChapterPointItem(scrapy.Item):
     id = scrapy.Field()
     # chapter_id = scrapy.Field()

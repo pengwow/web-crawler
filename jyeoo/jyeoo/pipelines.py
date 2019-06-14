@@ -4,7 +4,7 @@
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
-from jyeoo.mysql_model import DBSession, LibraryChapter, ItemBank, ChaperPoint, ItemPoint
+from jyeoo.mysql_model import DBSession, LibraryChapter, ItemBank, ChaperPoint, ItemPoint, ItemBankInit
 
 
 class JyeooPipeline(object):
@@ -20,7 +20,7 @@ class LibraryChapterPipeLine(object):
 
     def process_item(self, item, spider):
         if "library_chapter" == spider.name:
-            print(item)
+            # print(item)
             self.session.add(LibraryChapter(**item))
             return item
         return item
@@ -48,7 +48,22 @@ class ItemBankPipeLine(object):
             try:
                 self.session.add(ItemBank(**item_dict))
             except Exception as e:
-                print(e)
+                print(e,item_dict)
+            return item
+        return item
+
+
+class ItemBankInitPipeLine(object):
+    session = DBSession()
+
+    def process_item(self, item, spider):
+        if "item_bank_init" == spider.name:
+            fieldset_id = item.get('fieldset_id')
+            if 0 == self.session.session.query(ItemBankInit).filter(ItemBankInit.fieldset_id == fieldset_id).count():
+                try:
+                    self.session.add(ItemBankInit(**item))
+                except Exception as e:
+                    print(e)
             return item
         return item
 

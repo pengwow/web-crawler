@@ -59,13 +59,46 @@ class LibraryEntry(Base):
     grade_code = Column(String(10))
 
 
+class LevelGradeRef(Base):
+    # 表的名字:
+    __tablename__ = 'level_grade_ref'
+    # 唯一id
+    id = Column(INT, autoincrement=True, primary_key=True)
+    # 授课层级名称
+    level_name = Column(String(20))
+    # 授课层级Code
+    level_code = Column(String(10))
+    # 科目名称
+    grade_name = Column(String(20))
+    # 科目编码
+    grade_code = Column(String(10))
+
+
+class LevelSubjectsRef(Base):
+    # 表的名字:
+    __tablename__ = 'level_subjects_ref'
+    # 唯一id
+    id = Column(INT, autoincrement=True, primary_key=True)
+    # 授课层级名称
+    level_name = Column(String(20))
+    # 授课层级Code
+    level_code = Column(String(10))
+    # 科目名称
+    subject_name = Column(String(20))
+    # 科目编码
+    subject_code = Column(String(10))
+    # 科目URL
+    search_url = Column(String(100))
+
+
 class ItemStyle(Base):
     # 表的名字:
     __tablename__ = 'item_style'
     # 唯一id
     id = Column(String(36), primary_key=True)
-    #
+    # 年级名字
     level_name = Column(String(20))
+    # 年级代码
     level_code = Column(String(10))
     # 科目名称
     subject_name = Column(String(20))
@@ -181,13 +214,19 @@ class ItemBankInit(Base):
     # 是否已经查询过
     is_finish = Column(INT, default=0)
 
+
 class DBSession(object):
 
-    def __init__(self):
-        from jyeoo.settings import MYSQL_ENGINE
+    def __init__(self, account, password, ip, port, dbname):
+        # from jyeoo.settings import MYSQL_ENGINE
         # 初始化数据库连接: password 为自己数据库密码
         # '数据库类型+数据库驱动名称://用户名:口令@机器地址:端口号/数据库名'
-        self.engine = create_engine(MYSQL_ENGINE)
+        MYSQL_ENGINE = 'mysql+pymysql://{account}:{password}@{ip}:{port}/{dbname}'
+        self.engine = create_engine(MYSQL_ENGINE.format(account=account,
+                                                        password=password,
+                                                        ip=ip,
+                                                        port=port,
+                                                        dbname=dbname))
         # 创建DBSession类型:
         db_session = sessionmaker(bind=self.engine)
         self._session = db_session()

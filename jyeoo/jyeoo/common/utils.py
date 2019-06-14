@@ -5,7 +5,6 @@ import requests
 from jyeoo.common.constant import *
 import json
 from urllib.parse import quote
-import sys
 
 
 def cookie_str_to_list(cookie):
@@ -140,62 +139,123 @@ def get_chapter_point_url():
 
 
 def get_item_bank_url():
+    from jyeoo.mysql_model import DBSession, ItemBankInit
+    session = DBSession()
+
+    query = session.session.query(ItemBankInit).filter(ItemBankInit.is_finish == 0)
+    last_data = None
+
+    for item in query:
+        if last_data:
+            last_data.is_finish = 1
+            session.session.commit()
+        last_data = item
+        yield item.detail_page_url
+
+
+# def get_item_bank_init_url():
+#     """
+#     获取题库url列表用来爬取数据
+#     :return:
+#     """
+#     from jyeoo.mysql_model import DBSession, LibraryChapter, LibraryEntry, ItemStyle, ItemBankInit
+#     # re_list = list()
+#
+#     re_dict = dict()
+#     session = DBSession()
+#
+#     query = session.session.query(LibraryChapter).filter(LibraryChapter.is_finish == 0)
+#     url_str = 'http://www.jyeoo.com/{subject}/ques/search?f=0&q={pk}&ct={item_style_code}&fg={field_code}'
+#     fgs = ['8', '4', '2', '16']
+#     last_data = None
+#     # 遍历章节
+#     for item in query:
+#         if last_data:
+#             is_ok_count = session.session.query(ItemBankInit).filter(ItemBankInit.chaper_id == last_data.id).count()
+#             if is_ok_count > 1:
+#                 last_data.is_finish = 1
+#                 session.session.commit()
+#         last_data = item
+#         entry_query = session.session.query(LibraryEntry).filter(LibraryEntry.id == item.library_id)
+#         # 遍历 题库索引
+#         for entry_item in entry_query:
+#             style_query = session.session.query(ItemStyle).filter(ItemStyle.subject_code == entry_item.subject_code,
+#                                                                   ItemStyle.level_code == entry_item.level_code)
+#             if int(entry_item.level_code) > 1:
+#                 # 修改subject学科 拼接
+#                 subject = entry_item.subject_code + entry_item.level_code
+#             else:
+#                 subject = entry_item.subject_code
+#             # 遍历题型 选择...解答...
+#             for style_item in style_query:
+#                 # 遍历题类 常考,易错,好题,压轴
+#                 for fg in fgs:
+#                     temp_dict = dict()
+#                     # 学科
+#                     temp_dict['subject'] = subject
+#                     # 教材ID
+#                     temp_dict['library_id'] = item.library_id
+#                     # 章节ID
+#                     temp_dict['chaper_id'] = item.id
+#                     # 章节直连
+#                     temp_dict['pk'] = item.pk
+#                     # 题型
+#                     temp_dict['item_style_code'] = style_item.style_code
+#                     # 题类
+#                     temp_dict['field_code'] = fg
+#                     temp_dict['url'] = url_str.format(**temp_dict)
+#                     re_dict[item.id] = temp_dict
+#                     yield re_dict
+
+
+def get_item_bank_init_url():
     """
     获取题库url列表用来爬取数据
     :return:
     """
-    from jyeoo.mysql_model import DBSession, LibraryChapter, LibraryEntry, ItemStyle, ItemBank
-    from jyeoo.settings import ITEM_BANK_MAX_COUNT
+    from jyeoo.mysql_model import DBSession, LibraryChapter, LibraryEntry, ItemStyle, ItemBankInit
     # re_list = list()
 
     re_dict = dict()
     session = DBSession()
 
-    query = session.session.query(LibraryChapter).all()
-    url_str = 'http://www.jyeoo.com/{subject}/ques/search?f=0&q={pk}&ct={item_style_code}&fg={field_code}'
-    fgs = ['8', '4', '2', '16']
+    query = session.session.query(LibraryChapter).filter(LibraryChapter.is_finish == 0)
+    url_str = 'http://www.jyeoo.com/{subject}/ques/search?f=0&q={pk}'
+
+    last_data = None
     # 遍历章节
     for item in query:
-        today_count = session.session.query(ItemBank).filter(
-            ItemBank.create_date == datetime.datetime.now().strftime('%Y-%m-%d')).count()
-        if today_count >= ITEM_BANK_MAX_COUNT:
-            # 超过每日最大数量限制
-            sys.exit(0)
+        if last_data:
+            is_ok_count = session.session.query(ItemBankInit).filter(ItemBankInit.chaper_id == last_data.id).count()
+            if is_ok_count > 1:
+                last_data.is_finish = 1
+                session.session.commit()
+        last_data = item
         entry_query = session.session.query(LibraryEntry).filter(LibraryEntry.id == item.library_id)
         # 遍历 题库索引
         for entry_item in entry_query:
-            style_query = session.session.query(ItemStyle).filter(ItemStyle.subject_code == entry_item.subject_code,
-                                                                  ItemStyle.level_code == entry_item.level_code)
             if int(entry_item.level_code) > 1:
                 # 修改subject学科 拼接
                 subject = entry_item.subject_code + entry_item.level_code
             else:
                 subject = entry_item.subject_code
-            # 遍历题型 选择...解答...
-            for style_item in style_query:
-                # 遍历题类 常考,易错,好题,压轴
-                for fg in fgs:
-                    temp_dict = dict()
-                    # 学科
-                    temp_dict['subject'] = subject
-                    # 教材ID
-                    temp_dict['library_id'] = item.library_id
-                    # 章节ID
-                    temp_dict['chaper_id'] = item.id
-                    # 章节直连
-                    temp_dict['pk'] = item.pk
-                    # 题型
-                    temp_dict['item_style_code'] = style_item.style_code
-                    # 题类
-                    temp_dict['field_code'] = fg
-                    temp_dict['url'] = url_str.format(**temp_dict)
-                    # 已经爬取过了则跳过
-                    item_bank_count = session.session.query(ItemBank).filter(ItemBank.url == temp_dict['url']).count()
-                    if item_bank_count > 0:
-                        print('已经爬取了%s' % temp_dict['url'])
-                        continue
-                    re_dict[item.id] = temp_dict
-                    yield re_dict
+
+            temp_dict = dict()
+            # 学科
+            temp_dict['subject'] = subject
+            # 教材ID
+            temp_dict['library_id'] = item.library_id
+            # 章节ID
+            temp_dict['chaper_id'] = item.id
+            # 章节直连
+            temp_dict['pk'] = item.pk
+            # 题型
+            temp_dict['item_style_code'] = ''
+            # 题类
+            temp_dict['field_code'] = ''
+            temp_dict['url'] = url_str.format(**temp_dict)
+            re_dict[item.id] = temp_dict
+            yield re_dict
 
 
 # 取字符串中两个符号之间的东东
