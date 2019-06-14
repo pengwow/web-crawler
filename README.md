@@ -1,5 +1,5 @@
-# 菁优网爬虫
-
+# 菁优网爬虫[中止]
+使用另外分支-项目https://github.com/pengwow/jyeoo-crawler-gui
 ## 说明
 
 * jyeoo 为第一版爬虫基于scrapy + splash 【已废弃】
