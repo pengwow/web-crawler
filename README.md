@@ -16,6 +16,25 @@
 ## 代码参考
 
 * splash部署采用docker方式，详见官方文档
+```
+1. Install Docker.
+2. Pull the image:
+$ sudo docker pull scrapinghub/splash
+3. Start the container:
+$ sudo docker run -it -p 8050:8050 scrapinghub/splash
+4. Splash is now available at 0.0.0.0 at port 8050 (http).
+192.168.99.100:8050
+```
+```text
+启动:: 
+docker run -it -p 8050:8050 scrapinghub/splash
+
+后台运行：docker run -it -d -p 8050:8050 scrapinghub/splash
+注：其中， -t 选项让Docker分配一个伪终端（pseudo-tty）并绑定到容器的标准输入上， 
+       -i 则让容器的标准输入保持打开。
+       -p 选项指定Container到Host之间的端口映射关系。
+       -d 让Docker 容器在后台以守护态（Daemonized）形式运行。
+```
 
 * splash的动态渲染，翻页，触发按钮，执行js等采用lua脚本执行
 
