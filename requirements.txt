@@ -8,7 +8,7 @@ splash==3.3.1
 #selenium==3.141.0
 scrapy-splash==0.7.2
 sqlalchemy
-nltk==3.4
+nltk==3.4.5
 MarkupSafe==1.1.1
 mako==1.0.8
 bs4==0.0.1
