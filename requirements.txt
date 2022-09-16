@@ -10,7 +10,7 @@ scrapy-splash==0.7.2
 sqlalchemy
 nltk==3.4
 MarkupSafe==1.1.1
-mako==1.0.8
+mako==1.2.2
 bs4==0.0.1
 pymysql
 HTMLParser==0.0.2
